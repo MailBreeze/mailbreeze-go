@@ -135,3 +135,13 @@ func (c *Client) Contacts(listID string) *ContactsResource {
 		listID: listID,
 	}
 }
+
+// String implements fmt.Stringer to prevent API key leakage in debug output.
+func (c *Client) String() string {
+	return "mailbreeze.Client{apiKey: [REDACTED]}"
+}
+
+// GoString implements fmt.GoStringer to prevent API key leakage in %#v output.
+func (c *Client) GoString() string {
+	return c.String()
+}

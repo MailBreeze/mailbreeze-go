@@ -61,6 +61,16 @@ func newHTTPClient(apiKey, baseURL string, maxRetries int, httpClient *http.Clie
 	}
 }
 
+// String implements fmt.Stringer to prevent API key leakage in debug output.
+func (c *HTTPClient) String() string {
+	return fmt.Sprintf("HTTPClient{baseURL: %q, maxRetries: %d, apiKey: [REDACTED]}", c.baseURL, c.maxRetries)
+}
+
+// GoString implements fmt.GoStringer to prevent API key leakage in %#v output.
+func (c *HTTPClient) GoString() string {
+	return c.String()
+}
+
 // Get performs a GET request.
 func (c *HTTPClient) Get(ctx context.Context, path string, query url.Values, result interface{}) error {
 	return c.request(ctx, http.MethodGet, path, query, nil, result, nil)

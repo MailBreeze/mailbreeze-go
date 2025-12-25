@@ -274,3 +274,39 @@ func TestHTTPClientUserAgent(t *testing.T) {
 		t.Errorf("expected User-Agent 'mailbreeze-go/%s', got '%s'", Version, userAgent)
 	}
 }
+
+func TestAPIKeyRedactedInDebugOutput(t *testing.T) {
+	secretKey := "sk_live_super_secret_api_key_12345"
+	client := NewClient(secretKey)
+
+	// Test Client.String()
+	clientStr := client.String()
+	if contains(clientStr, secretKey) {
+		t.Error("API key should not appear in Client.String() output")
+	}
+	if !contains(clientStr, "[REDACTED]") {
+		t.Error("Client.String() should show [REDACTED]")
+	}
+
+	// Test HTTPClient.String()
+	httpClientStr := client.httpClient.String()
+	if contains(httpClientStr, secretKey) {
+		t.Error("API key should not appear in HTTPClient.String() output")
+	}
+	if !contains(httpClientStr, "[REDACTED]") {
+		t.Error("HTTPClient.String() should show [REDACTED]")
+	}
+}
+
+func contains(s, substr string) bool {
+	return len(s) >= len(substr) && (s == substr || len(s) > 0 && containsHelper(s, substr))
+}
+
+func containsHelper(s, substr string) bool {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
+}
