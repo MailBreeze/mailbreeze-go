@@ -104,8 +104,10 @@ type Contact struct {
 	Email            string                 `json:"email"`
 	FirstName        string                 `json:"first_name,omitempty"`
 	LastName         string                 `json:"last_name,omitempty"`
+	PhoneNumber      string                 `json:"phone_number,omitempty"`
 	Status           ContactStatus          `json:"status"`
 	CustomFields     map[string]interface{} `json:"custom_fields,omitempty"`
+	Source           string                 `json:"source,omitempty"`
 	CreatedAt        time.Time              `json:"created_at"`
 	UpdatedAt        *time.Time             `json:"updated_at,omitempty"`
 	ConsentType      ConsentType            `json:"consent_type,omitempty"`
@@ -119,7 +121,9 @@ type CreateContactParams struct {
 	Email            string                 `json:"email"`
 	FirstName        string                 `json:"first_name,omitempty"`
 	LastName         string                 `json:"last_name,omitempty"`
+	PhoneNumber      string                 `json:"phone_number,omitempty"`
 	CustomFields     map[string]interface{} `json:"custom_fields,omitempty"`
+	Source           string                 `json:"source,omitempty"`
 	ConsentType      ConsentType            `json:"consent_type,omitempty"`
 	ConsentSource    string                 `json:"consent_source,omitempty"`
 	ConsentTimestamp *time.Time             `json:"consent_timestamp,omitempty"`
@@ -131,6 +135,7 @@ type UpdateContactParams struct {
 	Email            string                 `json:"email,omitempty"`
 	FirstName        string                 `json:"first_name,omitempty"`
 	LastName         string                 `json:"last_name,omitempty"`
+	PhoneNumber      string                 `json:"phone_number,omitempty"`
 	CustomFields     map[string]interface{} `json:"custom_fields,omitempty"`
 	ConsentType      ConsentType            `json:"consent_type,omitempty"`
 	ConsentSource    string                 `json:"consent_source,omitempty"`
