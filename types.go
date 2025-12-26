@@ -89,32 +89,53 @@ const (
 	ContactStatusSuppressed   ContactStatus = "suppressed"
 )
 
+// ConsentType represents the type of consent obtained from a contact (NDPR compliance).
+type ConsentType string
+
+const (
+	ConsentTypeExplicit           ConsentType = "explicit"
+	ConsentTypeImplicit           ConsentType = "implicit"
+	ConsentTypeLegitimateInterest ConsentType = "legitimate_interest"
+)
+
 // Contact represents a contact.
 type Contact struct {
-	ID           string                 `json:"id"`
-	Email        string                 `json:"email"`
-	FirstName    string                 `json:"first_name,omitempty"`
-	LastName     string                 `json:"last_name,omitempty"`
-	Status       ContactStatus          `json:"status"`
-	CustomFields map[string]interface{} `json:"custom_fields,omitempty"`
-	CreatedAt    time.Time              `json:"created_at"`
-	UpdatedAt    *time.Time             `json:"updated_at,omitempty"`
+	ID               string                 `json:"id"`
+	Email            string                 `json:"email"`
+	FirstName        string                 `json:"first_name,omitempty"`
+	LastName         string                 `json:"last_name,omitempty"`
+	Status           ContactStatus          `json:"status"`
+	CustomFields     map[string]interface{} `json:"custom_fields,omitempty"`
+	CreatedAt        time.Time              `json:"created_at"`
+	UpdatedAt        *time.Time             `json:"updated_at,omitempty"`
+	ConsentType      ConsentType            `json:"consent_type,omitempty"`
+	ConsentSource    string                 `json:"consent_source,omitempty"`
+	ConsentTimestamp *time.Time             `json:"consent_timestamp,omitempty"`
+	ConsentIpAddress string                 `json:"consent_ip_address,omitempty"`
 }
 
 // CreateContactParams are the parameters for creating a contact.
 type CreateContactParams struct {
-	Email        string                 `json:"email"`
-	FirstName    string                 `json:"first_name,omitempty"`
-	LastName     string                 `json:"last_name,omitempty"`
-	CustomFields map[string]interface{} `json:"custom_fields,omitempty"`
+	Email            string                 `json:"email"`
+	FirstName        string                 `json:"first_name,omitempty"`
+	LastName         string                 `json:"last_name,omitempty"`
+	CustomFields     map[string]interface{} `json:"custom_fields,omitempty"`
+	ConsentType      ConsentType            `json:"consent_type,omitempty"`
+	ConsentSource    string                 `json:"consent_source,omitempty"`
+	ConsentTimestamp *time.Time             `json:"consent_timestamp,omitempty"`
+	ConsentIpAddress string                 `json:"consent_ip_address,omitempty"`
 }
 
 // UpdateContactParams are the parameters for updating a contact.
 type UpdateContactParams struct {
-	Email        string                 `json:"email,omitempty"`
-	FirstName    string                 `json:"first_name,omitempty"`
-	LastName     string                 `json:"last_name,omitempty"`
-	CustomFields map[string]interface{} `json:"custom_fields,omitempty"`
+	Email            string                 `json:"email,omitempty"`
+	FirstName        string                 `json:"first_name,omitempty"`
+	LastName         string                 `json:"last_name,omitempty"`
+	CustomFields     map[string]interface{} `json:"custom_fields,omitempty"`
+	ConsentType      ConsentType            `json:"consent_type,omitempty"`
+	ConsentSource    string                 `json:"consent_source,omitempty"`
+	ConsentTimestamp *time.Time             `json:"consent_timestamp,omitempty"`
+	ConsentIpAddress string                 `json:"consent_ip_address,omitempty"`
 }
 
 // ListContactsParams are the parameters for listing contacts.
