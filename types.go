@@ -69,13 +69,17 @@ type EmailList struct {
 
 // EmailStats contains email statistics.
 type EmailStats struct {
-	Sent         int `json:"sent"`
-	Delivered    int `json:"delivered"`
-	Bounced      int `json:"bounced"`
-	Complained   int `json:"complained"`
-	Opened       int `json:"opened"`
-	Clicked      int `json:"clicked"`
-	Unsubscribed int `json:"unsubscribed"`
+	Total         int     `json:"total"`
+	Sent          int     `json:"sent"`
+	Failed        int     `json:"failed"`
+	Transactional int     `json:"transactional"`
+	Marketing     int     `json:"marketing"`
+	SuccessRate   float64 `json:"successRate"`
+}
+
+// EmailStatsResponse is the wrapper for the stats API response.
+type EmailStatsResponse struct {
+	Stats EmailStats `json:"stats"`
 }
 
 // ContactStatus represents the subscription status of a contact.
@@ -237,61 +241,17 @@ type BatchVerificationResult struct {
 
 // VerificationStats contains verification statistics.
 type VerificationStats struct {
-	TotalVerified int `json:"total_verified"`
-	ValidCount    int `json:"valid_count"`
-	InvalidCount  int `json:"invalid_count"`
-	RiskyCount    int `json:"risky_count"`
-	UnknownCount  int `json:"unknown_count"`
+	TotalVerified      int     `json:"totalVerified"`
+	TotalValid         int     `json:"totalValid"`
+	TotalInvalid       int     `json:"totalInvalid"`
+	TotalUnknown       int     `json:"totalUnknown"`
+	TotalVerifications int     `json:"totalVerifications"`
+	ValidPercentage    float64 `json:"validPercentage"`
 }
 
-// EnrollmentStatus represents the status of an automation enrollment.
-type EnrollmentStatus string
-
-const (
-	EnrollmentStatusActive    EnrollmentStatus = "active"
-	EnrollmentStatusCompleted EnrollmentStatus = "completed"
-	EnrollmentStatusCancelled EnrollmentStatus = "cancelled"
-	EnrollmentStatusFailed    EnrollmentStatus = "failed"
-)
-
-// Enrollment represents an automation enrollment.
-type Enrollment struct {
-	ID           string           `json:"id"`
-	AutomationID string           `json:"automation_id"`
-	ContactID    string           `json:"contact_id"`
-	Status       EnrollmentStatus `json:"status"`
-	CurrentStep  int              `json:"current_step"`
-	Variables    map[string]any   `json:"variables,omitempty"`
-	CreatedAt    time.Time        `json:"created_at"`
-	UpdatedAt    *time.Time       `json:"updated_at,omitempty"`
-	CompletedAt  *time.Time       `json:"completed_at,omitempty"`
-}
-
-// EnrollParams are the parameters for enrolling a contact.
-type EnrollParams struct {
-	AutomationID string         `json:"automation_id"`
-	ContactID    string         `json:"contact_id"`
-	Variables    map[string]any `json:"variables,omitempty"`
-}
-
-// ListEnrollmentsParams are the parameters for listing enrollments.
-type ListEnrollmentsParams struct {
-	AutomationID string           `json:"automation_id,omitempty"`
-	Status       EnrollmentStatus `json:"status,omitempty"`
-	Page         int              `json:"page,omitempty"`
-	Limit        int              `json:"limit,omitempty"`
-}
-
-// EnrollmentList is a paginated list of enrollments.
-type EnrollmentList struct {
-	Items []Enrollment   `json:"items"`
-	Meta  PaginationMeta `json:"meta"`
-}
-
-// CancelEnrollmentResult is the result of cancelling an enrollment.
-type CancelEnrollmentResult struct {
-	ID        string `json:"id"`
-	Cancelled bool   `json:"cancelled"`
+// VerifyEmailParams are the parameters for verifying a single email.
+type VerifyEmailParams struct {
+	Email string `json:"email"`
 }
 
 // UploadURL contains the pre-signed upload URL.

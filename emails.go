@@ -55,9 +55,9 @@ func (r *EmailsResource) Get(ctx context.Context, emailID string) (*Email, error
 
 // Stats returns email statistics.
 func (r *EmailsResource) Stats(ctx context.Context) (*EmailStats, error) {
-	var stats EmailStats
-	if err := r.client.Get(ctx, "/emails/stats", nil, &stats); err != nil {
+	var response EmailStatsResponse
+	if err := r.client.Get(ctx, "/emails/stats", nil, &response); err != nil {
 		return nil, err
 	}
-	return &stats, nil
+	return &response.Stats, nil
 }

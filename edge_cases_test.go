@@ -130,38 +130,6 @@ func TestEmailsListWithQueryParams(t *testing.T) {
 	})
 }
 
-// Test Enrollments.List with all parameters
-func TestEnrollmentsListWithParams(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Query().Get("status") != "completed" {
-			t.Errorf("expected status completed, got %s", r.URL.Query().Get("status"))
-		}
-		if r.URL.Query().Get("page") != "2" {
-			t.Errorf("expected page 2, got %s", r.URL.Query().Get("page"))
-		}
-		if r.URL.Query().Get("limit") != "10" {
-			t.Errorf("expected limit 10, got %s", r.URL.Query().Get("limit"))
-		}
-
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"success": true,
-			"data": map[string]interface{}{
-				"items": []map[string]interface{}{},
-				"meta":  map[string]interface{}{"page": 2, "limit": 10, "total": 0, "total_pages": 0},
-			},
-		})
-	}))
-	defer server.Close()
-
-	client := NewClient("sk_test_123", WithBaseURL(server.URL))
-	client.Automations.Enrollments.List(context.Background(), &ListEnrollmentsParams{
-		Status: EnrollmentStatusCompleted,
-		Page:   2,
-		Limit:  10,
-	})
-}
-
 // Test HTTP errors when API call fails
 func TestAPICallErrors(t *testing.T) {
 	tests := []struct {
@@ -241,7 +209,7 @@ func TestAPICallErrors(t *testing.T) {
 		{
 			name: "verification verify error",
 			testFunc: func(client *Client) error {
-				_, err := client.Verification.Verify(context.Background(), "test@example.com")
+				_, err := client.Verification.Verify(context.Background(), &VerifyEmailParams{Email: "test@example.com"})
 				return err
 			},
 		},
@@ -263,20 +231,6 @@ func TestAPICallErrors(t *testing.T) {
 			name: "verification stats error",
 			testFunc: func(client *Client) error {
 				_, err := client.Verification.Stats(context.Background())
-				return err
-			},
-		},
-		{
-			name: "automations enroll error",
-			testFunc: func(client *Client) error {
-				_, err := client.Automations.Enroll(context.Background(), &EnrollParams{AutomationID: "auto_123", ContactID: "contact_123"})
-				return err
-			},
-		},
-		{
-			name: "enrollments cancel error",
-			testFunc: func(client *Client) error {
-				_, err := client.Automations.Enrollments.Cancel(context.Background(), "enroll_123")
 				return err
 			},
 		},
@@ -502,29 +456,6 @@ func TestListsDeleteError(t *testing.T) {
 	client := NewClient("sk_test_123", WithBaseURL(server.URL))
 
 	err := client.Lists.Delete(context.Background(), "list_123")
-
-	if err == nil {
-		t.Fatal("expected error")
-	}
-}
-
-// Test Enrollments.List error
-func TestEnrollmentsListError(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"success": false,
-			"error": map[string]interface{}{
-				"code":    "SERVER_ERROR",
-				"message": "Internal error",
-			},
-		})
-	}))
-	defer server.Close()
-
-	client := NewClient("sk_test_123", WithBaseURL(server.URL), WithMaxRetries(0))
-
-	_, err := client.Automations.Enrollments.List(context.Background(), nil)
 
 	if err == nil {
 		t.Fatal("expected error")

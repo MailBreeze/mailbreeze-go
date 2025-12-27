@@ -13,8 +13,8 @@ func TestVerificationVerify(t *testing.T) {
 		if r.Method != http.MethodPost {
 			t.Errorf("expected POST, got %s", r.Method)
 		}
-		if r.URL.Path != "/verification/verify" {
-			t.Errorf("expected /verification/verify, got %s", r.URL.Path)
+		if r.URL.Path != "/email-verification/single" {
+			t.Errorf("expected /email-verification/single, got %s", r.URL.Path)
 		}
 
 		var body map[string]string
@@ -42,7 +42,7 @@ func TestVerificationVerify(t *testing.T) {
 
 	client := NewClient("sk_test_123", WithBaseURL(server.URL))
 
-	result, err := client.Verification.Verify(context.Background(), "test@example.com")
+	result, err := client.Verification.Verify(context.Background(), &VerifyEmailParams{Email: "test@example.com"})
 
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -62,8 +62,8 @@ func TestVerificationBatch(t *testing.T) {
 		if r.Method != http.MethodPost {
 			t.Errorf("expected POST, got %s", r.Method)
 		}
-		if r.URL.Path != "/verification/batch" {
-			t.Errorf("expected /verification/batch, got %s", r.URL.Path)
+		if r.URL.Path != "/email-verification/batch" {
+			t.Errorf("expected /email-verification/batch, got %s", r.URL.Path)
 		}
 
 		w.WriteHeader(http.StatusAccepted)
@@ -99,8 +99,8 @@ func TestVerificationBatch(t *testing.T) {
 
 func TestVerificationGet(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/verification/ver_123" {
-			t.Errorf("expected /verification/ver_123, got %s", r.URL.Path)
+		if r.URL.Path != "/email-verification/ver_123" {
+			t.Errorf("expected /email-verification/ver_123, got %s", r.URL.Path)
 		}
 
 		w.WriteHeader(http.StatusOK)
@@ -137,19 +137,20 @@ func TestVerificationGet(t *testing.T) {
 
 func TestVerificationStats(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/verification/stats" {
-			t.Errorf("expected /verification/stats, got %s", r.URL.Path)
+		if r.URL.Path != "/email-verification/stats" {
+			t.Errorf("expected /email-verification/stats, got %s", r.URL.Path)
 		}
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"data": map[string]interface{}{
-				"total_verified": 1000,
-				"valid_count":    850,
-				"invalid_count":  100,
-				"risky_count":    50,
-				"unknown_count":  0,
+				"totalVerified":      1000,
+				"totalValid":         850,
+				"totalInvalid":       100,
+				"totalUnknown":       0,
+				"totalVerifications": 50,
+				"validPercentage":    85.0,
 			},
 		})
 	}))
@@ -164,10 +165,10 @@ func TestVerificationStats(t *testing.T) {
 	}
 
 	if stats.TotalVerified != 1000 {
-		t.Errorf("expected total_verified 1000, got %d", stats.TotalVerified)
+		t.Errorf("expected totalVerified 1000, got %d", stats.TotalVerified)
 	}
 
-	if stats.ValidCount != 850 {
-		t.Errorf("expected valid_count 850, got %d", stats.ValidCount)
+	if stats.TotalValid != 850 {
+		t.Errorf("expected totalValid 850, got %d", stats.TotalValid)
 	}
 }

@@ -11,10 +11,9 @@ type VerificationResource struct {
 }
 
 // Verify verifies a single email address.
-func (r *VerificationResource) Verify(ctx context.Context, email string) (*VerificationResult, error) {
+func (r *VerificationResource) Verify(ctx context.Context, params *VerifyEmailParams) (*VerificationResult, error) {
 	var result VerificationResult
-	body := map[string]string{"email": email}
-	if err := r.client.Post(ctx, "/verification/verify", body, &result); err != nil {
+	if err := r.client.Post(ctx, "/email-verification/single", params, &result); err != nil {
 		return nil, err
 	}
 	return &result, nil
@@ -24,7 +23,7 @@ func (r *VerificationResource) Verify(ctx context.Context, email string) (*Verif
 func (r *VerificationResource) Batch(ctx context.Context, emails []string) (*BatchVerificationResult, error) {
 	var result BatchVerificationResult
 	body := map[string][]string{"emails": emails}
-	if err := r.client.Post(ctx, "/verification/batch", body, &result); err != nil {
+	if err := r.client.Post(ctx, "/email-verification/batch", body, &result); err != nil {
 		return nil, err
 	}
 	return &result, nil
@@ -33,7 +32,7 @@ func (r *VerificationResource) Batch(ctx context.Context, emails []string) (*Bat
 // Get retrieves a batch verification status and results.
 func (r *VerificationResource) Get(ctx context.Context, verificationID string) (*BatchVerificationResult, error) {
 	var result BatchVerificationResult
-	if err := r.client.Get(ctx, fmt.Sprintf("/verification/%s", verificationID), nil, &result); err != nil {
+	if err := r.client.Get(ctx, fmt.Sprintf("/email-verification/%s", verificationID), nil, &result); err != nil {
 		return nil, err
 	}
 	return &result, nil
@@ -42,7 +41,7 @@ func (r *VerificationResource) Get(ctx context.Context, verificationID string) (
 // Stats returns verification statistics.
 func (r *VerificationResource) Stats(ctx context.Context) (*VerificationStats, error) {
 	var stats VerificationStats
-	if err := r.client.Get(ctx, "/verification/stats", nil, &stats); err != nil {
+	if err := r.client.Get(ctx, "/email-verification/stats", nil, &stats); err != nil {
 		return nil, err
 	}
 	return &stats, nil

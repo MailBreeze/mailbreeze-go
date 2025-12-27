@@ -25,7 +25,7 @@ import (
 const Version = "0.1.0"
 
 // DefaultBaseURL is the default API base URL.
-const DefaultBaseURL = "https://api.mailbreeze.com"
+const DefaultBaseURL = "https://api.mailbreeze.com/api/v1"
 
 // DefaultTimeout is the default request timeout.
 const DefaultTimeout = 30 * time.Second
@@ -46,9 +46,6 @@ type Client struct {
 
 	// Verification provides access to email verification operations.
 	Verification *VerificationResource
-
-	// Automations provides access to automation operations.
-	Automations *AutomationsResource
 
 	httpClient *HTTPClient
 }
@@ -120,10 +117,6 @@ func NewClient(apiKey string, opts ...ClientOption) *Client {
 	client.Lists = &ListsResource{client: httpClient}
 	client.Attachments = &AttachmentsResource{client: httpClient}
 	client.Verification = &VerificationResource{client: httpClient}
-	client.Automations = &AutomationsResource{
-		client:      httpClient,
-		Enrollments: &EnrollmentsResource{client: httpClient},
-	}
 
 	return client
 }

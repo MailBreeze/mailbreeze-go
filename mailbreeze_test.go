@@ -28,12 +28,6 @@ func TestNewClient(t *testing.T) {
 	if client.Verification == nil {
 		t.Error("expected Verification resource to be initialized")
 	}
-	if client.Automations == nil {
-		t.Error("expected Automations resource to be initialized")
-	}
-	if client.Automations.Enrollments == nil {
-		t.Error("expected Automations.Enrollments resource to be initialized")
-	}
 }
 
 func TestNewClientWithOptions(t *testing.T) {
@@ -244,13 +238,14 @@ func TestEmailsStats(t *testing.T) {
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"data": map[string]interface{}{
-				"sent":         100,
-				"delivered":    95,
-				"bounced":      2,
-				"complained":   1,
-				"opened":       50,
-				"clicked":      25,
-				"unsubscribed": 3,
+				"stats": map[string]interface{}{
+					"total":         100,
+					"sent":          95,
+					"failed":        5,
+					"transactional": 60,
+					"marketing":     40,
+					"successRate":   95.0,
+				},
 			},
 		})
 	}))
@@ -264,10 +259,13 @@ func TestEmailsStats(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if stats.Sent != 100 {
-		t.Errorf("expected sent 100, got %d", stats.Sent)
+	if stats.Total != 100 {
+		t.Errorf("expected total 100, got %d", stats.Total)
 	}
-	if stats.Delivered != 95 {
-		t.Errorf("expected delivered 95, got %d", stats.Delivered)
+	if stats.Sent != 95 {
+		t.Errorf("expected sent 95, got %d", stats.Sent)
+	}
+	if stats.SuccessRate != 95.0 {
+		t.Errorf("expected successRate 95.0, got %f", stats.SuccessRate)
 	}
 }

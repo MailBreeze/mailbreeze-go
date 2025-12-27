@@ -151,7 +151,9 @@ contact, err := contacts.Suppress(ctx, "contact_123")
 
 ```go
 // Verify single email
-result, err := client.Verification.Verify(ctx, "test@example.com")
+result, err := client.Verification.Verify(ctx, &mailbreeze.VerifyEmailParams{
+    Email: "test@example.com",
+})
 if result.IsValid {
     fmt.Println("Email is valid!")
 }
@@ -167,25 +169,7 @@ batch, err := client.Verification.Get(ctx, "ver_123")
 
 // Get verification stats
 stats, err := client.Verification.Stats(ctx)
-```
-
-### Automations
-
-```go
-// Enroll contact in automation
-enrollment, err := client.Automations.Enroll(ctx, &mailbreeze.EnrollParams{
-    AutomationID: "automation_123",
-    ContactID:    "contact_123",
-})
-
-// List enrollments
-enrollments, err := client.Automations.Enrollments.List(ctx, &mailbreeze.ListEnrollmentsParams{
-    AutomationID: "automation_123",
-    Status:       mailbreeze.EnrollmentStatusActive,
-})
-
-// Cancel enrollment
-result, err := client.Automations.Enrollments.Cancel(ctx, "enrollment_123")
+fmt.Printf("Total Valid: %d, Valid %%: %.1f\n", stats.TotalValid, stats.ValidPercentage)
 ```
 
 ### Attachments
