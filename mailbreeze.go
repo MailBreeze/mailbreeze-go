@@ -22,10 +22,10 @@ import (
 )
 
 // Version is the SDK version.
-const Version = "1.0.3"
+const Version = "1.0.4"
 
 // DefaultBaseURL is the default API base URL.
-const DefaultBaseURL = "https://api.mailbreeze.com/api/v1"
+const DefaultBaseURL = "https://api.mailbreeze.com"
 
 // DefaultTimeout is the default request timeout.
 const DefaultTimeout = 30 * time.Second

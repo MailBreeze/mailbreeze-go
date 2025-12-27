@@ -13,8 +13,8 @@ func TestVerificationVerify(t *testing.T) {
 		if r.Method != http.MethodPost {
 			t.Errorf("expected POST, got %s", r.Method)
 		}
-		if r.URL.Path != "/email-verification/single" {
-			t.Errorf("expected /email-verification/single, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v1/email-verification/single" {
+			t.Errorf("expected /api/v1/email-verification/single, got %s", r.URL.Path)
 		}
 
 		var body map[string]string
@@ -28,13 +28,15 @@ func TestVerificationVerify(t *testing.T) {
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"data": map[string]interface{}{
-				"email":            "test@example.com",
-				"status":           "valid",
-				"is_valid":         true,
-				"is_disposable":    false,
-				"is_role_based":    false,
-				"is_free_provider": false,
-				"mx_found":         true,
+				"email":   "test@example.com",
+				"result":  "valid",
+				"isValid": true,
+				"details": map[string]interface{}{
+					"isDisposable":   false,
+					"isRoleAccount":  false,
+					"isFreeProvider": false,
+					"hasMxRecords":   true,
+				},
 			},
 		})
 	}))
@@ -49,11 +51,11 @@ func TestVerificationVerify(t *testing.T) {
 	}
 
 	if !result.IsValid {
-		t.Error("expected is_valid to be true")
+		t.Error("expected isValid to be true")
 	}
 
-	if result.Status != VerificationStatusValid {
-		t.Errorf("expected status 'valid', got '%s'", result.Status)
+	if result.Result != VerificationStatusValid {
+		t.Errorf("expected result 'valid', got '%s'", result.Result)
 	}
 }
 
@@ -62,19 +64,19 @@ func TestVerificationBatch(t *testing.T) {
 		if r.Method != http.MethodPost {
 			t.Errorf("expected POST, got %s", r.Method)
 		}
-		if r.URL.Path != "/email-verification/batch" {
-			t.Errorf("expected /email-verification/batch, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v1/email-verification/batch" {
+			t.Errorf("expected /api/v1/email-verification/batch, got %s", r.URL.Path)
 		}
 
 		w.WriteHeader(http.StatusAccepted)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"data": map[string]interface{}{
-				"verification_id": "ver_123",
+				"verificationId":  "ver_123",
 				"status":          "processing",
-				"total":           3,
-				"processed":       0,
-				"created_at":      "2024-01-01T00:00:00Z",
+				"totalEmails":     3,
+				"processedEmails": 0,
+				"createdAt":       "2024-01-01T00:00:00Z",
 			},
 		})
 	}))
@@ -89,30 +91,30 @@ func TestVerificationBatch(t *testing.T) {
 	}
 
 	if result.VerificationID != "ver_123" {
-		t.Errorf("expected verification_id 'ver_123', got '%s'", result.VerificationID)
+		t.Errorf("expected verificationId 'ver_123', got '%s'", result.VerificationID)
 	}
 
-	if result.Total != 3 {
-		t.Errorf("expected total 3, got %d", result.Total)
+	if result.TotalEmails != 3 {
+		t.Errorf("expected totalEmails 3, got %d", result.TotalEmails)
 	}
 }
 
 func TestVerificationGet(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/email-verification/ver_123" {
-			t.Errorf("expected /email-verification/ver_123, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v1/email-verification/ver_123" {
+			t.Errorf("expected /api/v1/email-verification/ver_123, got %s", r.URL.Path)
 		}
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"data": map[string]interface{}{
-				"verification_id": "ver_123",
+				"verificationId":  "ver_123",
 				"status":          "completed",
-				"total":           3,
-				"processed":       3,
-				"created_at":      "2024-01-01T00:00:00Z",
-				"completed_at":    "2024-01-01T00:00:10Z",
+				"totalEmails":     3,
+				"processedEmails": 3,
+				"createdAt":       "2024-01-01T00:00:00Z",
+				"completedAt":     "2024-01-01T00:00:10Z",
 			},
 		})
 	}))
@@ -130,15 +132,74 @@ func TestVerificationGet(t *testing.T) {
 		t.Errorf("expected status 'completed', got '%s'", result.Status)
 	}
 
-	if result.Processed != 3 {
-		t.Errorf("expected processed 3, got %d", result.Processed)
+	if result.ProcessedEmails != 3 {
+		t.Errorf("expected processedEmails 3, got %d", result.ProcessedEmails)
+	}
+}
+
+func TestVerificationList(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			t.Errorf("expected GET, got %s", r.Method)
+		}
+		if r.URL.Path != "/api/v1/email-verification" {
+			t.Errorf("expected /api/v1/email-verification, got %s", r.URL.Path)
+		}
+
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": true,
+			"data": map[string]interface{}{
+				"data": []map[string]interface{}{
+					{
+						"verificationId":  "ver_1",
+						"status":          "completed",
+						"totalEmails":     100,
+						"processedEmails": 100,
+						"createdAt":       "2024-01-01T00:00:00Z",
+					},
+					{
+						"verificationId":  "ver_2",
+						"status":          "processing",
+						"totalEmails":     50,
+						"processedEmails": 25,
+						"createdAt":       "2024-01-02T00:00:00Z",
+					},
+				},
+				"pagination": map[string]interface{}{
+					"page":       1,
+					"limit":      20,
+					"total":      2,
+					"totalPages": 1,
+					"hasNext":    false,
+					"hasPrev":    false,
+				},
+			},
+		})
+	}))
+	defer server.Close()
+
+	client := NewClient("sk_test_123", WithBaseURL(server.URL))
+
+	result, err := client.Verification.List(context.Background(), nil)
+
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(result.Data) != 2 {
+		t.Errorf("expected 2 items, got %d", len(result.Data))
+	}
+
+	if result.Pagination.Total != 2 {
+		t.Errorf("expected total 2, got %d", result.Pagination.Total)
 	}
 }
 
 func TestVerificationStats(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/email-verification/stats" {
-			t.Errorf("expected /email-verification/stats, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v1/email-verification/stats" {
+			t.Errorf("expected /api/v1/email-verification/stats, got %s", r.URL.Path)
 		}
 
 		w.WriteHeader(http.StatusOK)

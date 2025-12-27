@@ -4,10 +4,12 @@ import "time"
 
 // PaginationMeta contains pagination information.
 type PaginationMeta struct {
-	Page       int `json:"page"`
-	Limit      int `json:"limit"`
-	Total      int `json:"total"`
-	TotalPages int `json:"total_pages"`
+	Page       int  `json:"page"`
+	Limit      int  `json:"limit"`
+	Total      int  `json:"total"`
+	TotalPages int  `json:"totalPages"`
+	HasNext    bool `json:"hasNext"`
+	HasPrev    bool `json:"hasPrev"`
 }
 
 // EmailStatus represents the delivery status of an email.
@@ -28,11 +30,23 @@ type Email struct {
 	ID          string      `json:"id"`
 	From        string      `json:"from"`
 	To          []string    `json:"to"`
+	CC          []string    `json:"cc,omitempty"`
+	BCC         []string    `json:"bcc,omitempty"`
 	Subject     string      `json:"subject,omitempty"`
 	Status      EmailStatus `json:"status"`
-	CreatedAt   time.Time   `json:"created_at"`
-	SentAt      *time.Time  `json:"sent_at,omitempty"`
-	DeliveredAt *time.Time  `json:"delivered_at,omitempty"`
+	MessageID   string      `json:"messageId,omitempty"`
+	TemplateID  string      `json:"templateId,omitempty"`
+	CreatedAt   time.Time   `json:"createdAt"`
+	SentAt      *time.Time  `json:"sentAt,omitempty"`
+	DeliveredAt *time.Time  `json:"deliveredAt,omitempty"`
+	OpenedAt    *time.Time  `json:"openedAt,omitempty"`
+	ClickedAt   *time.Time  `json:"clickedAt,omitempty"`
+}
+
+// SendEmailResult is the result of sending an email.
+type SendEmailResult struct {
+	// MessageID is the unique message identifier returned by the API
+	MessageID string `json:"messageId"`
 }
 
 // SendEmailParams are the parameters for sending an email.
@@ -42,10 +56,10 @@ type SendEmailParams struct {
 	Subject       string            `json:"subject,omitempty"`
 	HTML          string            `json:"html,omitempty"`
 	Text          string            `json:"text,omitempty"`
-	TemplateID    string            `json:"template_id,omitempty"`
+	TemplateID    string            `json:"templateId,omitempty"`
 	Variables     map[string]any    `json:"variables,omitempty"`
-	AttachmentIDs []string          `json:"attachment_ids,omitempty"`
-	ReplyTo       string            `json:"reply_to,omitempty"`
+	AttachmentIDs []string          `json:"attachmentIds,omitempty"`
+	ReplyTo       string            `json:"replyTo,omitempty"`
 	CC            []string          `json:"cc,omitempty"`
 	BCC           []string          `json:"bcc,omitempty"`
 	Headers       map[string]string `json:"headers,omitempty"`
@@ -57,14 +71,14 @@ type ListEmailsParams struct {
 	Status   EmailStatus `json:"status,omitempty"`
 	Page     int         `json:"page,omitempty"`
 	Limit    int         `json:"limit,omitempty"`
-	FromDate *time.Time  `json:"from_date,omitempty"`
-	ToDate   *time.Time  `json:"to_date,omitempty"`
+	FromDate *time.Time  `json:"fromDate,omitempty"`
+	ToDate   *time.Time  `json:"toDate,omitempty"`
 }
 
 // EmailList is a paginated list of emails.
 type EmailList struct {
-	Items []Email        `json:"items"`
-	Meta  PaginationMeta `json:"meta"`
+	Data       []Email        `json:"data"`
+	Pagination PaginationMeta `json:"pagination"`
 }
 
 // EmailStats contains email statistics.
@@ -106,45 +120,47 @@ const (
 type Contact struct {
 	ID               string                 `json:"id"`
 	Email            string                 `json:"email"`
-	FirstName        string                 `json:"first_name,omitempty"`
-	LastName         string                 `json:"last_name,omitempty"`
-	PhoneNumber      string                 `json:"phone_number,omitempty"`
+	FirstName        string                 `json:"firstName,omitempty"`
+	LastName         string                 `json:"lastName,omitempty"`
+	PhoneNumber      string                 `json:"phoneNumber,omitempty"`
 	Status           ContactStatus          `json:"status"`
-	CustomFields     map[string]interface{} `json:"custom_fields,omitempty"`
+	CustomFields     map[string]interface{} `json:"customFields,omitempty"`
 	Source           string                 `json:"source,omitempty"`
-	CreatedAt        time.Time              `json:"created_at"`
-	UpdatedAt        *time.Time             `json:"updated_at,omitempty"`
-	ConsentType      ConsentType            `json:"consent_type,omitempty"`
-	ConsentSource    string                 `json:"consent_source,omitempty"`
-	ConsentTimestamp *time.Time             `json:"consent_timestamp,omitempty"`
-	ConsentIpAddress string                 `json:"consent_ip_address,omitempty"`
+	CreatedAt        time.Time              `json:"createdAt"`
+	UpdatedAt        *time.Time             `json:"updatedAt,omitempty"`
+	SubscribedAt     *time.Time             `json:"subscribedAt,omitempty"`
+	UnsubscribedAt   *time.Time             `json:"unsubscribedAt,omitempty"`
+	ConsentType      ConsentType            `json:"consentType,omitempty"`
+	ConsentSource    string                 `json:"consentSource,omitempty"`
+	ConsentTimestamp *time.Time             `json:"consentTimestamp,omitempty"`
+	ConsentIpAddress string                 `json:"consentIpAddress,omitempty"`
 }
 
 // CreateContactParams are the parameters for creating a contact.
 type CreateContactParams struct {
 	Email            string                 `json:"email"`
-	FirstName        string                 `json:"first_name,omitempty"`
-	LastName         string                 `json:"last_name,omitempty"`
-	PhoneNumber      string                 `json:"phone_number,omitempty"`
-	CustomFields     map[string]interface{} `json:"custom_fields,omitempty"`
+	FirstName        string                 `json:"firstName,omitempty"`
+	LastName         string                 `json:"lastName,omitempty"`
+	PhoneNumber      string                 `json:"phoneNumber,omitempty"`
+	CustomFields     map[string]interface{} `json:"customFields,omitempty"`
 	Source           string                 `json:"source,omitempty"`
-	ConsentType      ConsentType            `json:"consent_type,omitempty"`
-	ConsentSource    string                 `json:"consent_source,omitempty"`
-	ConsentTimestamp *time.Time             `json:"consent_timestamp,omitempty"`
-	ConsentIpAddress string                 `json:"consent_ip_address,omitempty"`
+	ConsentType      ConsentType            `json:"consentType,omitempty"`
+	ConsentSource    string                 `json:"consentSource,omitempty"`
+	ConsentTimestamp *time.Time             `json:"consentTimestamp,omitempty"`
+	ConsentIpAddress string                 `json:"consentIpAddress,omitempty"`
 }
 
 // UpdateContactParams are the parameters for updating a contact.
 type UpdateContactParams struct {
 	Email            string                 `json:"email,omitempty"`
-	FirstName        string                 `json:"first_name,omitempty"`
-	LastName         string                 `json:"last_name,omitempty"`
-	PhoneNumber      string                 `json:"phone_number,omitempty"`
-	CustomFields     map[string]interface{} `json:"custom_fields,omitempty"`
-	ConsentType      ConsentType            `json:"consent_type,omitempty"`
-	ConsentSource    string                 `json:"consent_source,omitempty"`
-	ConsentTimestamp *time.Time             `json:"consent_timestamp,omitempty"`
-	ConsentIpAddress string                 `json:"consent_ip_address,omitempty"`
+	FirstName        string                 `json:"firstName,omitempty"`
+	LastName         string                 `json:"lastName,omitempty"`
+	PhoneNumber      string                 `json:"phoneNumber,omitempty"`
+	CustomFields     map[string]interface{} `json:"customFields,omitempty"`
+	ConsentType      ConsentType            `json:"consentType,omitempty"`
+	ConsentSource    string                 `json:"consentSource,omitempty"`
+	ConsentTimestamp *time.Time             `json:"consentTimestamp,omitempty"`
+	ConsentIpAddress string                 `json:"consentIpAddress,omitempty"`
 }
 
 // ListContactsParams are the parameters for listing contacts.
@@ -157,8 +173,8 @@ type ListContactsParams struct {
 
 // ContactList is a paginated list of contacts.
 type ContactList struct {
-	Items []Contact      `json:"items"`
-	Meta  PaginationMeta `json:"meta"`
+	Data       []Contact      `json:"data"`
+	Pagination PaginationMeta `json:"pagination"`
 }
 
 // List represents a contact list.
@@ -166,9 +182,9 @@ type List struct {
 	ID           string     `json:"id"`
 	Name         string     `json:"name"`
 	Description  string     `json:"description,omitempty"`
-	ContactCount int        `json:"contact_count"`
-	CreatedAt    time.Time  `json:"created_at"`
-	UpdatedAt    *time.Time `json:"updated_at,omitempty"`
+	ContactCount int        `json:"contactCount"`
+	CreatedAt    time.Time  `json:"createdAt"`
+	UpdatedAt    *time.Time `json:"updatedAt,omitempty"`
 }
 
 // CreateListParams are the parameters for creating a list.
@@ -192,17 +208,18 @@ type ListListsParams struct {
 
 // ListsResponse is a paginated list of lists.
 type ListsResponse struct {
-	Items []List         `json:"items"`
-	Meta  PaginationMeta `json:"meta"`
+	Data       []List         `json:"data"`
+	Pagination PaginationMeta `json:"pagination"`
 }
 
 // ListStats contains list statistics.
 type ListStats struct {
-	Total        int `json:"total"`
-	Active       int `json:"active"`
-	Unsubscribed int `json:"unsubscribed"`
-	Bounced      int `json:"bounced"`
-	Complained   int `json:"complained"`
+	TotalContacts        int `json:"totalContacts"`
+	ActiveContacts       int `json:"activeContacts"`
+	UnsubscribedContacts int `json:"unsubscribedContacts"`
+	BouncedContacts      int `json:"bouncedContacts"`
+	ComplainedContacts   int `json:"complainedContacts"`
+	SuppressedContacts   int `json:"suppressedContacts"`
 }
 
 // VerificationStatus represents the verification result status.
@@ -215,28 +232,54 @@ const (
 	VerificationStatusUnknown VerificationStatus = "unknown"
 )
 
+// VerificationDetails contains additional verification details.
+type VerificationDetails struct {
+	IsFreeProvider bool `json:"isFreeProvider,omitempty"`
+	IsDisposable   bool `json:"isDisposable,omitempty"`
+	IsRoleAccount  bool `json:"isRoleAccount,omitempty"`
+	HasMxRecords   bool `json:"hasMxRecords,omitempty"`
+	IsSpamTrap     bool `json:"isSpamTrap,omitempty"`
+}
+
 // VerificationResult is the result of a single email verification.
 type VerificationResult struct {
-	Email          string             `json:"email"`
-	Status         VerificationStatus `json:"status"`
-	IsValid        bool               `json:"is_valid"`
-	IsDisposable   bool               `json:"is_disposable"`
-	IsRoleBased    bool               `json:"is_role_based"`
-	IsFreeProvider bool               `json:"is_free_provider"`
-	MXFound        bool               `json:"mx_found"`
-	SMTPCheck      *bool              `json:"smtp_check,omitempty"`
-	Suggestion     string             `json:"suggestion,omitempty"`
+	Email     string               `json:"email"`
+	IsValid   bool                 `json:"isValid"`
+	Result    VerificationStatus   `json:"result"`
+	Reason    string               `json:"reason,omitempty"`
+	Cached    bool                 `json:"cached,omitempty"`
+	RiskScore int                  `json:"riskScore,omitempty"`
+	Details   *VerificationDetails `json:"details,omitempty"`
+}
+
+// BatchVerificationAnalytics contains analytics summary for batch verification.
+type BatchVerificationAnalytics struct {
+	Valid   int `json:"valid"`
+	Invalid int `json:"invalid"`
+	Risky   int `json:"risky"`
+	Unknown int `json:"unknown"`
+}
+
+// BatchResults contains batch verification results grouped by category.
+// This is returned when results are immediate (all cached).
+type BatchResults struct {
+	Clean   []string `json:"clean,omitempty"`
+	Dirty   []string `json:"dirty,omitempty"`
+	Unknown []string `json:"unknown,omitempty"`
 }
 
 // BatchVerificationResult is the result of a batch verification.
 type BatchVerificationResult struct {
-	VerificationID string               `json:"verification_id"`
-	Status         string               `json:"status"`
-	Total          int                  `json:"total"`
-	Processed      int                  `json:"processed"`
-	Results        []VerificationResult `json:"results,omitempty"`
-	CreatedAt      time.Time            `json:"created_at"`
-	CompletedAt    *time.Time           `json:"completed_at,omitempty"`
+	VerificationID  string `json:"verificationId"`
+	Status          string `json:"status"`
+	TotalEmails     int    `json:"totalEmails"`
+	ProcessedEmails int    `json:"processedEmails"`
+	CreditsDeducted int    `json:"creditsDeducted"`
+	// Results can be either []VerificationResult or BatchResults depending on API response
+	Results     interface{}                 `json:"results,omitempty"`
+	Analytics   *BatchVerificationAnalytics `json:"analytics,omitempty"`
+	CreatedAt   time.Time                   `json:"createdAt"`
+	CompletedAt *time.Time                  `json:"completedAt,omitempty"`
 }
 
 // VerificationStats contains verification statistics.
@@ -254,26 +297,41 @@ type VerifyEmailParams struct {
 	Email string `json:"email"`
 }
 
+// ListVerificationsParams are the parameters for listing batch verifications.
+type ListVerificationsParams struct {
+	Page   int    `json:"page,omitempty"`
+	Limit  int    `json:"limit,omitempty"`
+	Status string `json:"status,omitempty"`
+}
+
+// VerificationsResponse is a paginated list of batch verifications.
+type VerificationsResponse struct {
+	Data       []BatchVerificationResult `json:"data"`
+	Pagination PaginationMeta            `json:"pagination"`
+}
+
 // UploadURL contains the pre-signed upload URL.
 type UploadURL struct {
-	AttachmentID string    `json:"attachment_id"`
-	UploadURL    string    `json:"upload_url"`
-	ExpiresAt    time.Time `json:"expires_at"`
+	AttachmentID string    `json:"attachmentId"`
+	UploadURL    string    `json:"uploadUrl"`
+	UploadToken  string    `json:"uploadToken"`
+	ExpiresAt    time.Time `json:"expiresAt"`
 }
 
 // CreateUploadParams are the parameters for creating an upload URL.
 type CreateUploadParams struct {
 	Filename    string `json:"filename"`
-	ContentType string `json:"content_type"`
+	ContentType string `json:"contentType"`
 	Size        int64  `json:"size"`
+	Inline      bool   `json:"inline,omitempty"`
 }
 
 // Attachment represents an attachment.
 type Attachment struct {
 	ID          string    `json:"id"`
 	Filename    string    `json:"filename"`
-	ContentType string    `json:"content_type"`
+	ContentType string    `json:"contentType"`
 	Size        int64     `json:"size"`
 	Status      string    `json:"status"`
-	CreatedAt   time.Time `json:"created_at"`
+	CreatedAt   time.Time `json:"createdAt"`
 }

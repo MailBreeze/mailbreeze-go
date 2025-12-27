@@ -13,8 +13,8 @@ func TestAttachmentsCreateUpload(t *testing.T) {
 		if r.Method != http.MethodPost {
 			t.Errorf("expected POST, got %s", r.Method)
 		}
-		if r.URL.Path != "/attachments/upload" {
-			t.Errorf("expected /attachments/upload, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v1/attachments/presigned-url" {
+			t.Errorf("expected /api/v1/attachments/presigned-url, got %s", r.URL.Path)
 		}
 
 		var body CreateUploadParams
@@ -25,16 +25,17 @@ func TestAttachmentsCreateUpload(t *testing.T) {
 		}
 
 		if body.ContentType != "application/pdf" {
-			t.Errorf("expected content_type 'application/pdf', got '%s'", body.ContentType)
+			t.Errorf("expected contentType 'application/pdf', got '%s'", body.ContentType)
 		}
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"data": map[string]interface{}{
-				"attachment_id": "att_123",
-				"upload_url":    "https://storage.example.com/upload/att_123",
-				"expires_at":    "2024-01-01T01:00:00Z",
+				"attachmentId": "att_123",
+				"uploadUrl":    "https://storage.example.com/upload/att_123",
+				"uploadToken":  "token_123",
+				"expiresAt":    "2024-01-01T01:00:00Z",
 			},
 		})
 	}))
@@ -52,11 +53,11 @@ func TestAttachmentsCreateUpload(t *testing.T) {
 	}
 
 	if result.AttachmentID != "att_123" {
-		t.Errorf("expected attachment_id 'att_123', got '%s'", result.AttachmentID)
+		t.Errorf("expected attachmentId 'att_123', got '%s'", result.AttachmentID)
 	}
 
 	if result.UploadURL != "https://storage.example.com/upload/att_123" {
-		t.Errorf("expected upload_url, got '%s'", result.UploadURL)
+		t.Errorf("expected uploadUrl, got '%s'", result.UploadURL)
 	}
 }
 
@@ -65,27 +66,20 @@ func TestAttachmentsConfirm(t *testing.T) {
 		if r.Method != http.MethodPost {
 			t.Errorf("expected POST, got %s", r.Method)
 		}
-		if r.URL.Path != "/attachments/confirm" {
-			t.Errorf("expected /attachments/confirm, got %s", r.URL.Path)
-		}
-
-		var body map[string]string
-		json.NewDecoder(r.Body).Decode(&body)
-
-		if body["attachment_id"] != "att_123" {
-			t.Errorf("expected attachment_id 'att_123', got '%s'", body["attachment_id"])
+		if r.URL.Path != "/api/v1/attachments/att_123/confirm" {
+			t.Errorf("expected /api/v1/attachments/att_123/confirm, got %s", r.URL.Path)
 		}
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"data": map[string]interface{}{
-				"id":           "att_123",
-				"filename":     "document.pdf",
-				"content_type": "application/pdf",
-				"size":         12345,
-				"status":       "ready",
-				"created_at":   "2024-01-01T00:00:00Z",
+				"id":          "att_123",
+				"filename":    "document.pdf",
+				"contentType": "application/pdf",
+				"size":        12345,
+				"status":      "ready",
+				"createdAt":   "2024-01-01T00:00:00Z",
 			},
 		})
 	}))

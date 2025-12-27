@@ -194,11 +194,13 @@ func TestHTTPClientRetry(t *testing.T) {
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"data": map[string]interface{}{
-				"id":         "email_123",
-				"from":       "a@example.com",
-				"to":         []string{"b@example.com"},
-				"status":     "delivered",
-				"created_at": "2024-01-01T00:00:00Z",
+				"email": map[string]interface{}{
+					"id":        "email_123",
+					"from":      "a@example.com",
+					"to":        []string{"b@example.com"},
+					"status":    "delivered",
+					"createdAt": "2024-01-01T00:00:00Z",
+				},
 			},
 		})
 	}))

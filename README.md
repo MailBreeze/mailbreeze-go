@@ -40,7 +40,7 @@ func main() {
         log.Fatal(err)
     }
 
-    fmt.Printf("Email sent: %s\n", email.ID)
+    fmt.Printf("Email sent: %s\n", email.MessageID)
 }
 ```
 
@@ -143,8 +143,10 @@ contact, err := contacts.Update(ctx, "contact_123", &mailbreeze.UpdateContactPar
 // Delete contact
 err := contacts.Delete(ctx, "contact_123")
 
-// Suppress contact
-contact, err := contacts.Suppress(ctx, "contact_123")
+// Suppress contact (add to suppression list)
+err := contacts.Suppress(ctx, "contact_123", mailbreeze.SuppressReasonManual)
+// Available reasons: SuppressReasonManual, SuppressReasonUnsubscribed,
+// SuppressReasonBounced, SuppressReasonComplained, SuppressReasonSpamTrap
 ```
 
 ### Email Verification

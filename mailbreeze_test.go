@@ -63,8 +63,8 @@ func TestEmailsSend(t *testing.T) {
 		if r.Method != http.MethodPost {
 			t.Errorf("expected POST, got %s", r.Method)
 		}
-		if r.URL.Path != "/emails" {
-			t.Errorf("expected /emails, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v1/emails" {
+			t.Errorf("expected /api/v1/emails, got %s", r.URL.Path)
 		}
 		if r.Header.Get("X-API-Key") != "sk_test_123" {
 			t.Errorf("expected X-API-Key header")
@@ -77,12 +77,7 @@ func TestEmailsSend(t *testing.T) {
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"data": map[string]interface{}{
-				"id":         "email_123",
-				"from":       "hello@example.com",
-				"to":         []string{"user@example.com"},
-				"subject":    "Hello",
-				"status":     "pending",
-				"created_at": "2024-01-01T00:00:00Z",
+				"messageId": "msg_email_123",
 			},
 		})
 	}))
@@ -90,7 +85,7 @@ func TestEmailsSend(t *testing.T) {
 
 	client := NewClient("sk_test_123", WithBaseURL(server.URL))
 
-	email, err := client.Emails.Send(context.Background(), &SendEmailParams{
+	result, err := client.Emails.Send(context.Background(), &SendEmailParams{
 		From:    "hello@example.com",
 		To:      []string{"user@example.com"},
 		Subject: "Hello",
@@ -101,8 +96,8 @@ func TestEmailsSend(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if email.ID != "email_123" {
-		t.Errorf("expected ID 'email_123', got '%s'", email.ID)
+	if result.MessageID != "msg_email_123" {
+		t.Errorf("expected MessageID 'msg_email_123', got '%s'", result.MessageID)
 	}
 }
 
@@ -116,11 +111,7 @@ func TestEmailsSendWithIdempotencyKey(t *testing.T) {
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"data": map[string]interface{}{
-				"id":         "email_123",
-				"from":       "hello@example.com",
-				"to":         []string{"user@example.com"},
-				"status":     "pending",
-				"created_at": "2024-01-01T00:00:00Z",
+				"messageId": "msg_email_123",
 			},
 		})
 	}))
@@ -147,28 +138,30 @@ func TestEmailsList(t *testing.T) {
 		if r.Method != http.MethodGet {
 			t.Errorf("expected GET, got %s", r.Method)
 		}
-		if r.URL.Path != "/emails" {
-			t.Errorf("expected /emails, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v1/emails" {
+			t.Errorf("expected /api/v1/emails, got %s", r.URL.Path)
 		}
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"data": map[string]interface{}{
-				"items": []map[string]interface{}{
+				"data": []map[string]interface{}{
 					{
-						"id":         "email_1",
-						"from":       "a@example.com",
-						"to":         []string{"b@example.com"},
-						"status":     "delivered",
-						"created_at": "2024-01-01T00:00:00Z",
+						"id":        "email_1",
+						"from":      "a@example.com",
+						"to":        []string{"b@example.com"},
+						"status":    "delivered",
+						"createdAt": "2024-01-01T00:00:00Z",
 					},
 				},
-				"meta": map[string]interface{}{
-					"page":        1,
-					"limit":       20,
-					"total":       1,
-					"total_pages": 1,
+				"pagination": map[string]interface{}{
+					"page":       1,
+					"limit":      20,
+					"total":      1,
+					"totalPages": 1,
+					"hasNext":    false,
+					"hasPrev":    false,
 				},
 			},
 		})
@@ -186,30 +179,32 @@ func TestEmailsList(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(result.Items) != 1 {
-		t.Errorf("expected 1 item, got %d", len(result.Items))
+	if len(result.Data) != 1 {
+		t.Errorf("expected 1 item, got %d", len(result.Data))
 	}
 
-	if result.Meta.Total != 1 {
-		t.Errorf("expected total 1, got %d", result.Meta.Total)
+	if result.Pagination.Total != 1 {
+		t.Errorf("expected total 1, got %d", result.Pagination.Total)
 	}
 }
 
 func TestEmailsGet(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/emails/email_123" {
-			t.Errorf("expected /emails/email_123, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v1/emails/email_123" {
+			t.Errorf("expected /api/v1/emails/email_123, got %s", r.URL.Path)
 		}
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"data": map[string]interface{}{
-				"id":         "email_123",
-				"from":       "a@example.com",
-				"to":         []string{"b@example.com"},
-				"status":     "delivered",
-				"created_at": "2024-01-01T00:00:00Z",
+				"email": map[string]interface{}{
+					"id":        "email_123",
+					"from":      "a@example.com",
+					"to":        []string{"b@example.com"},
+					"status":    "delivered",
+					"createdAt": "2024-01-01T00:00:00Z",
+				},
 			},
 		})
 	}))
@@ -230,8 +225,8 @@ func TestEmailsGet(t *testing.T) {
 
 func TestEmailsStats(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/emails/stats" {
-			t.Errorf("expected /emails/stats, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v1/emails/stats" {
+			t.Errorf("expected /api/v1/emails/stats, got %s", r.URL.Path)
 		}
 
 		w.WriteHeader(http.StatusOK)

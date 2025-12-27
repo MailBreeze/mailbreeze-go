@@ -1,22 +1,20 @@
+version: "2"
+
 linters:
   enable:
     - errcheck
     - govet
     - staticcheck
     - unused
+  exclusions:
+    rules:
+      - path: '(.+)_test\.go'
+        linters:
+          - errcheck
 
 linters-settings:
   errcheck:
-    # Ignore errors in test files for common test patterns
     exclude-functions:
       - (encoding/json.Encoder).Encode
       - (encoding/json.Decoder).Decode
       - (net/http.ResponseWriter).Write
-
-issues:
-  # Exclude test files from errcheck for unchecked return values
-  # that are intentionally ignored in test mock servers
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - errcheck

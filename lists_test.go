@@ -13,8 +13,8 @@ func TestListsCreate(t *testing.T) {
 		if r.Method != http.MethodPost {
 			t.Errorf("expected POST, got %s", r.Method)
 		}
-		if r.URL.Path != "/lists" {
-			t.Errorf("expected /lists, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v1/contact-lists" {
+			t.Errorf("expected /api/v1/contact-lists, got %s", r.URL.Path)
 		}
 
 		var body CreateListParams
@@ -28,9 +28,9 @@ func TestListsCreate(t *testing.T) {
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"data": map[string]interface{}{
-				"id":         "list_123",
-				"name":       "My List",
-				"created_at": "2024-01-01T00:00:00Z",
+				"id":        "list_123",
+				"name":      "My List",
+				"createdAt": "2024-01-01T00:00:00Z",
 			},
 		})
 	}))
@@ -56,31 +56,33 @@ func TestListsList(t *testing.T) {
 		if r.Method != http.MethodGet {
 			t.Errorf("expected GET, got %s", r.Method)
 		}
-		if r.URL.Path != "/lists" {
-			t.Errorf("expected /lists, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v1/contact-lists" {
+			t.Errorf("expected /api/v1/contact-lists, got %s", r.URL.Path)
 		}
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"data": map[string]interface{}{
-				"items": []map[string]interface{}{
+				"data": []map[string]interface{}{
 					{
-						"id":         "list_1",
-						"name":       "List One",
-						"created_at": "2024-01-01T00:00:00Z",
+						"id":        "list_1",
+						"name":      "List One",
+						"createdAt": "2024-01-01T00:00:00Z",
 					},
 					{
-						"id":         "list_2",
-						"name":       "List Two",
-						"created_at": "2024-01-02T00:00:00Z",
+						"id":        "list_2",
+						"name":      "List Two",
+						"createdAt": "2024-01-02T00:00:00Z",
 					},
 				},
-				"meta": map[string]interface{}{
-					"page":        1,
-					"limit":       20,
-					"total":       2,
-					"total_pages": 1,
+				"pagination": map[string]interface{}{
+					"page":       1,
+					"limit":      20,
+					"total":      2,
+					"totalPages": 1,
+					"hasNext":    false,
+					"hasPrev":    false,
 				},
 			},
 		})
@@ -95,28 +97,63 @@ func TestListsList(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(result.Items) != 2 {
-		t.Errorf("expected 2 items, got %d", len(result.Items))
+	if len(result.Data) != 2 {
+		t.Errorf("expected 2 items, got %d", len(result.Data))
 	}
 
-	if result.Meta.Total != 2 {
-		t.Errorf("expected total 2, got %d", result.Meta.Total)
+	if result.Pagination.Total != 2 {
+		t.Errorf("expected total 2, got %d", result.Pagination.Total)
+	}
+}
+
+func TestListsListArrayResponse(t *testing.T) {
+	// Test that we handle array response (no pagination wrapper)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": true,
+			"data": []map[string]interface{}{
+				{
+					"id":        "list_1",
+					"name":      "List One",
+					"createdAt": "2024-01-01T00:00:00Z",
+				},
+			},
+		})
+	}))
+	defer server.Close()
+
+	client := NewClient("sk_test_123", WithBaseURL(server.URL))
+
+	result, err := client.Lists.List(context.Background(), nil)
+
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(result.Data) != 1 {
+		t.Errorf("expected 1 item, got %d", len(result.Data))
+	}
+
+	// Should have synthetic pagination
+	if result.Pagination.Total != 1 {
+		t.Errorf("expected total 1, got %d", result.Pagination.Total)
 	}
 }
 
 func TestListsGet(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/lists/list_123" {
-			t.Errorf("expected /lists/list_123, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v1/contact-lists/list_123" {
+			t.Errorf("expected /api/v1/contact-lists/list_123, got %s", r.URL.Path)
 		}
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"data": map[string]interface{}{
-				"id":         "list_123",
-				"name":       "My List",
-				"created_at": "2024-01-01T00:00:00Z",
+				"id":        "list_123",
+				"name":      "My List",
+				"createdAt": "2024-01-01T00:00:00Z",
 			},
 		})
 	}))
@@ -137,20 +174,20 @@ func TestListsGet(t *testing.T) {
 
 func TestListsUpdate(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPatch {
-			t.Errorf("expected PATCH, got %s", r.Method)
+		if r.Method != http.MethodPut {
+			t.Errorf("expected PUT, got %s", r.Method)
 		}
-		if r.URL.Path != "/lists/list_123" {
-			t.Errorf("expected /lists/list_123, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v1/contact-lists/list_123" {
+			t.Errorf("expected /api/v1/contact-lists/list_123, got %s", r.URL.Path)
 		}
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"data": map[string]interface{}{
-				"id":         "list_123",
-				"name":       "Updated List",
-				"created_at": "2024-01-01T00:00:00Z",
+				"id":        "list_123",
+				"name":      "Updated List",
+				"createdAt": "2024-01-01T00:00:00Z",
 			},
 		})
 	}))
@@ -176,8 +213,8 @@ func TestListsDelete(t *testing.T) {
 		if r.Method != http.MethodDelete {
 			t.Errorf("expected DELETE, got %s", r.Method)
 		}
-		if r.URL.Path != "/lists/list_123" {
-			t.Errorf("expected /lists/list_123, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v1/contact-lists/list_123" {
+			t.Errorf("expected /api/v1/contact-lists/list_123, got %s", r.URL.Path)
 		}
 
 		w.WriteHeader(http.StatusNoContent)
@@ -195,19 +232,20 @@ func TestListsDelete(t *testing.T) {
 
 func TestListsStats(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/lists/list_123/stats" {
-			t.Errorf("expected /lists/list_123/stats, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v1/contact-lists/list_123/stats" {
+			t.Errorf("expected /api/v1/contact-lists/list_123/stats, got %s", r.URL.Path)
 		}
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"data": map[string]interface{}{
-				"total":        1000,
-				"active":       900,
-				"unsubscribed": 50,
-				"bounced":      25,
-				"complained":   10,
+				"totalContacts":        1000,
+				"activeContacts":       900,
+				"unsubscribedContacts": 50,
+				"bouncedContacts":      25,
+				"complainedContacts":   10,
+				"suppressedContacts":   15,
 			},
 		})
 	}))
@@ -221,7 +259,7 @@ func TestListsStats(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if stats.Total != 1000 {
-		t.Errorf("expected total 1000, got %d", stats.Total)
+	if stats.TotalContacts != 1000 {
+		t.Errorf("expected totalContacts 1000, got %d", stats.TotalContacts)
 	}
 }

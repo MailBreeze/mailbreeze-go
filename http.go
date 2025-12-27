@@ -86,6 +86,11 @@ func (c *HTTPClient) Patch(ctx context.Context, path string, body, result interf
 	return c.request(ctx, http.MethodPatch, path, nil, body, result, nil)
 }
 
+// Put performs a PUT request.
+func (c *HTTPClient) Put(ctx context.Context, path string, body, result interface{}) error {
+	return c.request(ctx, http.MethodPut, path, nil, body, result, nil)
+}
+
 // Delete performs a DELETE request.
 func (c *HTTPClient) Delete(ctx context.Context, path string) error {
 	return c.request(ctx, http.MethodDelete, path, nil, nil, nil, nil)
@@ -187,7 +192,7 @@ func (c *HTTPClient) setHeaders(req *http.Request, opts *requestOptions) {
 }
 
 func (c *HTTPClient) handleResponse(resp *http.Response, result interface{}) (*Error, error) {
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	requestID := resp.Header.Get("X-Request-Id")
 	retryAfter := parseRetryAfter(resp.Header.Get("Retry-After"))

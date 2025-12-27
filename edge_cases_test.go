@@ -51,8 +51,8 @@ func TestListsListWithQueryParams(t *testing.T) {
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"data": map[string]interface{}{
-				"items": []map[string]interface{}{},
-				"meta":  map[string]interface{}{"page": 2, "limit": 50, "total": 0, "total_pages": 0},
+				"data":       []map[string]interface{}{},
+				"pagination": map[string]interface{}{"page": 2, "limit": 50, "total": 0, "totalPages": 0, "hasNext": false, "hasPrev": false},
 			},
 		})
 	}))
@@ -86,8 +86,8 @@ func TestContactsListWithQueryParams(t *testing.T) {
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"data": map[string]interface{}{
-				"items": []map[string]interface{}{},
-				"meta":  map[string]interface{}{"page": 3, "limit": 100, "total": 0, "total_pages": 0},
+				"data":       []map[string]interface{}{},
+				"pagination": map[string]interface{}{"page": 3, "limit": 100, "total": 0, "totalPages": 0, "hasNext": false, "hasPrev": false},
 			},
 		})
 	}))
@@ -116,8 +116,8 @@ func TestEmailsListWithQueryParams(t *testing.T) {
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"data": map[string]interface{}{
-				"items": []map[string]interface{}{},
-				"meta":  map[string]interface{}{"page": 1, "limit": 20, "total": 0, "total_pages": 0},
+				"data":       []map[string]interface{}{},
+				"pagination": map[string]interface{}{"page": 1, "limit": 20, "total": 0, "totalPages": 0, "hasNext": false, "hasPrev": false},
 			},
 		})
 	}))
@@ -202,7 +202,7 @@ func TestAPICallErrors(t *testing.T) {
 		{
 			name: "contacts suppress error",
 			testFunc: func(client *Client) error {
-				_, err := client.Contacts("list_123").Suppress(context.Background(), "contact_123")
+				err := client.Contacts("list_123").Suppress(context.Background(), "contact_123", SuppressReasonManual)
 				return err
 			},
 		},
@@ -231,6 +231,13 @@ func TestAPICallErrors(t *testing.T) {
 			name: "verification stats error",
 			testFunc: func(client *Client) error {
 				_, err := client.Verification.Stats(context.Background())
+				return err
+			},
+		},
+		{
+			name: "verification list error",
+			testFunc: func(client *Client) error {
+				_, err := client.Verification.List(context.Background(), nil)
 				return err
 			},
 		},
@@ -633,10 +640,10 @@ func TestRetryableStatusCodes(t *testing.T) {
 		status     int
 		shouldPass bool
 	}{
-		{http.StatusTooManyRequests, true}, // 429 is retryable
+		{http.StatusTooManyRequests, true},     // 429 is retryable
 		{http.StatusInternalServerError, true}, // 500 is retryable
-		{http.StatusBadGateway, true}, // 502 is retryable
-		{http.StatusServiceUnavailable, true}, // 503 is retryable
+		{http.StatusBadGateway, true},          // 502 is retryable
+		{http.StatusServiceUnavailable, true},  // 503 is retryable
 	}
 
 	for _, tt := range tests {

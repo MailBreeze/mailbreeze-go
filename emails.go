@@ -13,12 +13,12 @@ type EmailsResource struct {
 }
 
 // Send sends an email.
-func (r *EmailsResource) Send(ctx context.Context, params *SendEmailParams, opts ...RequestOption) (*Email, error) {
-	var email Email
-	if err := r.client.Post(ctx, "/emails", params, &email, opts...); err != nil {
+func (r *EmailsResource) Send(ctx context.Context, params *SendEmailParams, opts ...RequestOption) (*SendEmailResult, error) {
+	var result SendEmailResult
+	if err := r.client.Post(ctx, "/api/v1/emails", params, &result, opts...); err != nil {
 		return nil, err
 	}
-	return &email, nil
+	return &result, nil
 }
 
 // List lists emails with optional filtering.
@@ -38,25 +38,28 @@ func (r *EmailsResource) List(ctx context.Context, params *ListEmailsParams) (*E
 	}
 
 	var result EmailList
-	if err := r.client.Get(ctx, "/emails", query, &result); err != nil {
+	if err := r.client.Get(ctx, "/api/v1/emails", query, &result); err != nil {
 		return nil, err
 	}
 	return &result, nil
 }
 
-// Get retrieves an email by ID.
+// Get retrieves an email by ID (or messageId).
 func (r *EmailsResource) Get(ctx context.Context, emailID string) (*Email, error) {
-	var email Email
-	if err := r.client.Get(ctx, fmt.Sprintf("/emails/%s", emailID), nil, &email); err != nil {
+	// API returns {"email": {...}} inside the data wrapper
+	var response struct {
+		Email Email `json:"email"`
+	}
+	if err := r.client.Get(ctx, fmt.Sprintf("/api/v1/emails/%s", emailID), nil, &response); err != nil {
 		return nil, err
 	}
-	return &email, nil
+	return &response.Email, nil
 }
 
 // Stats returns email statistics.
 func (r *EmailsResource) Stats(ctx context.Context) (*EmailStats, error) {
 	var response EmailStatsResponse
-	if err := r.client.Get(ctx, "/emails/stats", nil, &response); err != nil {
+	if err := r.client.Get(ctx, "/api/v1/emails/stats", nil, &response); err != nil {
 		return nil, err
 	}
 	return &response.Stats, nil

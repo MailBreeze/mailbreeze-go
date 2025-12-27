@@ -13,8 +13,8 @@ func TestContactsCreate(t *testing.T) {
 		if r.Method != http.MethodPost {
 			t.Errorf("expected POST, got %s", r.Method)
 		}
-		if r.URL.Path != "/lists/list_123/contacts" {
-			t.Errorf("expected /lists/list_123/contacts, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v1/contact-lists/list_123/contacts" {
+			t.Errorf("expected /api/v1/contact-lists/list_123/contacts, got %s", r.URL.Path)
 		}
 
 		var body CreateContactParams
@@ -28,10 +28,10 @@ func TestContactsCreate(t *testing.T) {
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"data": map[string]interface{}{
-				"id":         "contact_123",
-				"email":      "user@example.com",
-				"status":     "subscribed",
-				"created_at": "2024-01-01T00:00:00Z",
+				"id":        "contact_123",
+				"email":     "user@example.com",
+				"status":    "active",
+				"createdAt": "2024-01-01T00:00:00Z",
 			},
 		})
 	}))
@@ -57,27 +57,29 @@ func TestContactsList(t *testing.T) {
 		if r.Method != http.MethodGet {
 			t.Errorf("expected GET, got %s", r.Method)
 		}
-		if r.URL.Path != "/lists/list_123/contacts" {
-			t.Errorf("expected /lists/list_123/contacts, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v1/contact-lists/list_123/contacts" {
+			t.Errorf("expected /api/v1/contact-lists/list_123/contacts, got %s", r.URL.Path)
 		}
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"data": map[string]interface{}{
-				"items": []map[string]interface{}{
+				"data": []map[string]interface{}{
 					{
-						"id":         "contact_1",
-						"email":      "user1@example.com",
-						"status":     "subscribed",
-						"created_at": "2024-01-01T00:00:00Z",
+						"id":        "contact_1",
+						"email":     "user1@example.com",
+						"status":    "active",
+						"createdAt": "2024-01-01T00:00:00Z",
 					},
 				},
-				"meta": map[string]interface{}{
-					"page":        1,
-					"limit":       20,
-					"total":       1,
-					"total_pages": 1,
+				"pagination": map[string]interface{}{
+					"page":       1,
+					"limit":      20,
+					"total":      1,
+					"totalPages": 1,
+					"hasNext":    false,
+					"hasPrev":    false,
 				},
 			},
 		})
@@ -92,25 +94,25 @@ func TestContactsList(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(result.Items) != 1 {
-		t.Errorf("expected 1 item, got %d", len(result.Items))
+	if len(result.Data) != 1 {
+		t.Errorf("expected 1 item, got %d", len(result.Data))
 	}
 }
 
 func TestContactsGet(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/lists/list_123/contacts/contact_123" {
-			t.Errorf("expected /lists/list_123/contacts/contact_123, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v1/contact-lists/list_123/contacts/contact_123" {
+			t.Errorf("expected /api/v1/contact-lists/list_123/contacts/contact_123, got %s", r.URL.Path)
 		}
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"data": map[string]interface{}{
-				"id":         "contact_123",
-				"email":      "user@example.com",
-				"status":     "subscribed",
-				"created_at": "2024-01-01T00:00:00Z",
+				"id":        "contact_123",
+				"email":     "user@example.com",
+				"status":    "active",
+				"createdAt": "2024-01-01T00:00:00Z",
 			},
 		})
 	}))
@@ -131,21 +133,21 @@ func TestContactsGet(t *testing.T) {
 
 func TestContactsUpdate(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPatch {
-			t.Errorf("expected PATCH, got %s", r.Method)
+		if r.Method != http.MethodPut {
+			t.Errorf("expected PUT, got %s", r.Method)
 		}
-		if r.URL.Path != "/lists/list_123/contacts/contact_123" {
-			t.Errorf("expected /lists/list_123/contacts/contact_123, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v1/contact-lists/list_123/contacts/contact_123" {
+			t.Errorf("expected /api/v1/contact-lists/list_123/contacts/contact_123, got %s", r.URL.Path)
 		}
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"data": map[string]interface{}{
-				"id":         "contact_123",
-				"email":      "updated@example.com",
-				"status":     "subscribed",
-				"created_at": "2024-01-01T00:00:00Z",
+				"id":        "contact_123",
+				"email":     "updated@example.com",
+				"status":    "active",
+				"createdAt": "2024-01-01T00:00:00Z",
 			},
 		})
 	}))
@@ -171,8 +173,8 @@ func TestContactsDelete(t *testing.T) {
 		if r.Method != http.MethodDelete {
 			t.Errorf("expected DELETE, got %s", r.Method)
 		}
-		if r.URL.Path != "/lists/list_123/contacts/contact_123" {
-			t.Errorf("expected /lists/list_123/contacts/contact_123, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v1/contact-lists/list_123/contacts/contact_123" {
+			t.Errorf("expected /api/v1/contact-lists/list_123/contacts/contact_123, got %s", r.URL.Path)
 		}
 
 		w.WriteHeader(http.StatusNoContent)
@@ -193,18 +195,25 @@ func TestContactsSuppress(t *testing.T) {
 		if r.Method != http.MethodPost {
 			t.Errorf("expected POST, got %s", r.Method)
 		}
-		if r.URL.Path != "/lists/list_123/contacts/contact_123/suppress" {
-			t.Errorf("expected /lists/list_123/contacts/contact_123/suppress, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v1/contact-lists/list_123/contacts/contact_123/suppress" {
+			t.Errorf("expected /api/v1/contact-lists/list_123/contacts/contact_123/suppress, got %s", r.URL.Path)
+		}
+
+		// Verify reason is in body
+		var body map[string]string
+		json.NewDecoder(r.Body).Decode(&body)
+		if body["reason"] != "manual" {
+			t.Errorf("expected reason 'manual', got '%s'", body["reason"])
 		}
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"data": map[string]interface{}{
-				"id":         "contact_123",
-				"email":      "user@example.com",
-				"status":     "suppressed",
-				"created_at": "2024-01-01T00:00:00Z",
+				"id":        "contact_123",
+				"email":     "user@example.com",
+				"status":    "suppressed",
+				"createdAt": "2024-01-01T00:00:00Z",
 			},
 		})
 	}))
@@ -212,13 +221,9 @@ func TestContactsSuppress(t *testing.T) {
 
 	client := NewClient("sk_test_123", WithBaseURL(server.URL))
 
-	contact, err := client.Contacts("list_123").Suppress(context.Background(), "contact_123")
+	err := client.Contacts("list_123").Suppress(context.Background(), "contact_123", SuppressReasonManual)
 
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if contact.Status != ContactStatusSuppressed {
-		t.Errorf("expected status 'suppressed', got '%s'", contact.Status)
 	}
 }
