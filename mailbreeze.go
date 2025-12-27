@@ -22,7 +22,7 @@ import (
 )
 
 // Version is the SDK version.
-const Version = "1.0.4"
+const Version = "1.0.5"
 
 // DefaultBaseURL is the default API base URL.
 const DefaultBaseURL = "https://api.mailbreeze.com"
